@@ -3,20 +3,32 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Invoice;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Http\Resources\V1\InvoiceCollection;
 use App\Http\Resources\V1\InvoiceResource;
+use App\Filters\V1\InvoiceFilter;
 
 class InvoiceController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return new InvoiceCollection(Invoice::paginate());
+        $filter = new InvoiceFilter();
+        $queryItems = $filter -> transform($request);
+
+        if (count($queryItems) ==0){
+            return new InvoiceCollection(Invoice::paginate());
+        }else{
+            $invoices = Invoice::where($queryItems) -> paginate();
+
+            return new InvoiceCollection($invoices->appends($request-> query()));
+        }
+
     }
 
     /**
@@ -30,7 +42,7 @@ class InvoiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreInvoiceRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -54,7 +66,7 @@ class InvoiceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateInvoiceRequest $request, Invoice $invoice)
+    public function update(Request $request, Invoice $invoice)
     {
         //
     }
