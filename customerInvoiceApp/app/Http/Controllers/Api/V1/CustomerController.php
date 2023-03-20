@@ -3,18 +3,31 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Customer;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
+use App\Http\Resources\V1\CustomerResource;
+use App\Http\Resources\V1\CustomerCollection;
+use App\Services\V1\CustomerQuery;
 
 class CustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Customer::all();
+        $filter = new CustomerQuery();
+        $queryItems = $filter -> transform($request);
+
+        if (count($queryItems) ==0){
+            return new CustomerCollection(Customer::paginate());
+        }else{
+            return new CustomerCollection(Customer::where($queryItems)->paginate());
+        }
+        Customer::where($queryItems);
+        return new CustomerCollection(Customer::all());
     }
 
     /**
@@ -38,7 +51,7 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        //
+        return new CustomerResource($customer);
     }
 
     /**
